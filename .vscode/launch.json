@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug sim-agent",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/sim-agent",
+            "args": [
+                "1",
+                "udpin://127.0.0.1:14540"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "Build sim-agent (Debug)",
+            "miDebuggerPath": "/usr/bin/gdb"
+        }
+    ]
+}

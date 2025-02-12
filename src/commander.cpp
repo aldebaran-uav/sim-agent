@@ -1,0 +1,144 @@
+#include "commander.h"
+#include <random>
+#include <iostream>
+#include <cmath>
+#include <future>
+
+Commander::Commander(std::shared_ptr<mavsdk::Action> action,
+                     std::shared_ptr<mavsdk::Telemetry> telemetry)
+    : m_action(action), m_telemetry(telemetry) {}
+
+Commander::~Commander() {
+    stopMission();
+    if (m_missionThread.joinable()) {
+        m_missionThread.join();
+    }
+}
+
+void Commander::setNavigationArea(double north, double east, double south, double west, double max_altitude, double min_altitude) {
+    m_max_altitude = max_altitude;
+    m_min_altitude = min_altitude;
+    
+    m_north = north;
+    m_east = east;
+    m_south = south;
+    m_west = west;
+
+    m_lat_dist = std::uniform_real_distribution<>(m_south, m_north);
+    m_lon_dist = std::uniform_real_distribution<>(m_west, m_east);
+}
+
+void Commander::takeoff() {
+    if (m_action) {
+        std::cout << "Arming..." << std::endl;
+        auto arm_result = m_action->arm();
+        if (arm_result != mavsdk::Action::Result::Success) {
+            std::cerr << "Arming failed: " << arm_result << std::endl;
+            return;
+        }
+        std::cout << "Taking off..." << std::endl;
+        const auto result = m_action->takeoff();
+        if (result != mavsdk::Action::Result::Success) {
+            std::cerr << "Takeoff failed: " << result << std::endl;
+        }
+
+        while(true) {
+            bool in_air = m_telemetry->in_air();
+            mavsdk::Telemetry::FlightMode flight_mode = m_telemetry->flight_mode();
+            if (in_air && flight_mode == mavsdk::Telemetry::FlightMode::Hold) {
+                std::cout << "Drone is in the air." << std::endl;
+                break;
+            }
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+    
+    } else {
+        std::cerr << "Action plugin not initialized." << std::endl;
+    }
+}
+
+void Commander::land() {
+    std::cout << "Landing is not implemented." << std::endl;
+}
+
+void Commander::startMission() {
+    if (!m_missionRunning) {
+        m_missionRunning = true;
+        m_missionThread = std::thread(&Commander::runMission, this);
+    } else {
+        std::cout << "Mission already running." << std::endl;
+    }
+}
+
+void Commander::stopMission() {
+    if (m_missionRunning) {
+        m_missionRunning = false;
+        if (m_missionThread.joinable()) {
+            m_missionThread.join();
+        }
+    } else {
+        std::cout << "Mission not running." << std::endl;
+    }
+}
+
+void Commander::runMission() {
+    while (m_missionRunning) {
+        // Generate random waypoint within the defined area
+        double latitude = m_lat_dist(m_gen);
+        double longitude = m_lon_dist(m_gen);
+        float altitude = m_min_altitude + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (m_max_altitude - m_min_altitude)));
+
+        std::cout << "Navigating to waypoint: " << latitude << ", " << longitude << ", " << altitude << std::endl;
+        navigateToWaypoint(latitude, longitude, altitude);
+
+        if (m_telemetry->in_air() && m_telemetry->flight_mode() == mavsdk::Telemetry::FlightMode::Hold) {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        } else {
+            std::cerr << "Drone not in the air." << std::endl;
+            break;
+        }
+    }
+    std::cout << "Mission stopped." << std::endl;
+}
+
+void Commander::navigateToWaypoint(double latitude, double longitude, float altitude) {
+    if (m_action) {
+        auto goto_result = m_action->goto_location(latitude, longitude, altitude, 0.0f);
+        if (goto_result != mavsdk::Action::Result::Success) {
+            std::cerr << "Failed to navigate to waypoint: " << goto_result << std::endl;
+            return;
+        }
+
+        std::cout << "Navigating to waypoint: " << latitude << ", " << longitude << " alt : " << altitude << std::endl;
+
+        // Define a tolerance for considering the waypoint reached (in meters)
+        constexpr double tolerance = 5.0;
+
+        while (m_missionRunning) {
+            // Get current position from telemetry
+            const auto position = m_telemetry->position();
+            double current_latitude = position.latitude_deg;
+            double current_longitude = position.longitude_deg;
+            float current_altitude = position.absolute_altitude_m;
+
+            // Calculate distance to waypoint
+            double distance = std::sqrt(std::pow((latitude - current_latitude) * 111111, 2) + // Approximate meters per degree latitude
+                                        std::pow((longitude - current_longitude) * 111111 * std::cos(latitude * M_PI / 180.0), 2) + // Approximate meters per degree longitude
+                                        std::pow(altitude - current_altitude, 2));
+
+            if (distance <= tolerance) {
+                std::cout << "Reached waypoint." << std::endl;
+                break;
+            }
+
+            if (!m_telemetry->in_air() || m_telemetry->flight_mode() != mavsdk::Telemetry::FlightMode::Hold) {
+                std::cerr << "Drone not in the air or not in hold mode." << std::endl;
+                return;
+            }
+
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+    } else {
+        std::cerr << "Action plugin not initialized." << std::endl;
+    }
+}
