@@ -1,8 +1,11 @@
+#pragma once
+
 #ifndef COMMANDER_H
 #define COMMANDER_H
 
 #include <mavsdk/plugins/telemetry/telemetry.h>
 #include <mavsdk/plugins/action/action.h>
+
 #include <atomic>
 #include <thread>
 #include <memory>

@@ -82,11 +82,21 @@ void Commander::stopMission() {
 }
 
 void Commander::runMission() {
+    std::uniform_real_distribution<> alt_dist(m_min_altitude, m_max_altitude);
+
     while (m_missionRunning) {
         // Generate random waypoint within the defined area
         double latitude = m_lat_dist(m_gen);
         double longitude = m_lon_dist(m_gen);
-        float altitude = m_min_altitude + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (m_max_altitude - m_min_altitude)));
+        
+        // Avoid division by zero
+        float altitude;
+        if (m_max_altitude > m_min_altitude) {
+            altitude = alt_dist(m_gen);
+        } else {
+            altitude = m_min_altitude;
+            std::cerr << "Max altitude equals min altitude. Setting altitude to min altitude." << std::endl;
+        }
 
         std::cout << "Navigating to waypoint: " << latitude << ", " << longitude << ", " << altitude << std::endl;
         navigateToWaypoint(latitude, longitude, altitude);
@@ -121,7 +131,6 @@ void Commander::navigateToWaypoint(double latitude, double longitude, float alti
             double current_longitude = position.longitude_deg;
             float current_altitude = position.absolute_altitude_m;
 
-            // Calculate distance to waypoint
             double distance = std::sqrt(std::pow((latitude - current_latitude) * 111111, 2) + // Approximate meters per degree latitude
                                         std::pow((longitude - current_longitude) * 111111 * std::cos(latitude * M_PI / 180.0), 2) + // Approximate meters per degree longitude
                                         std::pow(altitude - current_altitude, 2));
@@ -137,7 +146,7 @@ void Commander::navigateToWaypoint(double latitude, double longitude, float alti
             }
 
             std::this_thread::sleep_for(std::chrono::seconds(1));
-        }
+        }    
     } else {
         std::cerr << "Action plugin not initialized." << std::endl;
     }

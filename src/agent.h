@@ -1,10 +1,13 @@
+#pragma once
+
 #ifndef AGENT_H
 #define AGENT_H
+
+#include "commander.h"
 
 #include <mavsdk/mavsdk.h>
 #include <mavsdk/plugins/telemetry/telemetry.h>
 #include <mavsdk/plugins/action/action.h>
-#include "commander.h"
 
 #include <iostream>
 #include <memory>
@@ -13,14 +16,13 @@
 
 using namespace mavsdk;
 
-struct uav 
-{
+typedef struct {
     std::shared_ptr<Mavsdk> mav;
     std::shared_ptr<System> sys;
     std::shared_ptr<Telemetry> tlm;
     std::shared_ptr<Action> act;
     std::unique_ptr<Commander> cmd;
-};
+} uav;
 
 class Agent 
 {
