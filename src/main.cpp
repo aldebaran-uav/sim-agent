@@ -4,9 +4,9 @@
 #include <thread>
 
 int main(int argc, char* argv[]) {
-    if (argc != 3) {
-        std::cout << "Usage: " << argv[0] << " <number_of_drones> <udp_connection_url>" << std::endl;
-        std::cout << "Example: " << argv[0] << " 4 udpin://:14540" << std::endl;
+    if (argc != 4) {
+        std::cout << "Usage: " << argv[0] << " <number_of_drones> <udp_connection_url> <competion_server_url>" << std::endl;
+        std::cout << "Example: " << argv[0] << " 4 udpin://:14540 http://127.0.0.25:5000" << std::endl;
         return 1;
     }
 
@@ -21,9 +21,10 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     std::string connection_url = argv[2];
+    std::string server_url = argv[3];
 
     Agent* agent = Agent::getInstance();
-    agent->init(num_drones, connection_url);
+    agent->init(num_drones, connection_url, server_url);
 
     // waiting time to ensure all drones are connected
     while (agent->uavs().size() < num_drones) {
