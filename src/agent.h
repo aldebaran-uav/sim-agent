@@ -6,6 +6,7 @@
 #include "commander.h"
 #include "telemetry_manager.h"
 #include "server_manager.h"
+#include "navigation_area.h"
 
 #include <mavsdk/mavsdk.h>
 #include <mavsdk/plugins/telemetry/telemetry.h>
@@ -33,7 +34,10 @@ class Agent
 {
 public:
     static Agent* getInstance();
-    void init(int uav_count, const std::string& start_url, const std::string& server_url);
+
+    void init(int uav_count, const std::string& start_url, 
+              const std::string& server_url, navigation_area& nav_area);
+
     Agent();
     ~Agent();
 
@@ -42,6 +46,8 @@ public:
 private:
     static Agent* instance;
     int m_uav_count;
+    navigation_area m_nav_area;
+
     std::vector<uav> m_uavs;
     std::vector<std::thread> m_threads;
 };

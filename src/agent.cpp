@@ -27,7 +27,7 @@ Agent* Agent::getInstance()
 }
 
 void Agent::init(int uav_count, const std::string& start_url, 
-                 const std::string& server_url) 
+                 const std::string& server_url, navigation_area& nav_area) 
 {
     if (instance == nullptr) {
         instance = new Agent();
@@ -35,6 +35,7 @@ void Agent::init(int uav_count, const std::string& start_url,
 
     instance->m_uav_count = uav_count;
     instance->m_uavs.resize(uav_count);
+    instance->m_nav_area = nav_area;
 
     m_threads.clear();
     for (int i = 0; i < uav_count; ++i) {
@@ -81,6 +82,11 @@ void Agent::init(int uav_count, const std::string& start_url,
             m_uavs[i].cmd = std::make_unique<Commander>(m_uavs[i].act, m_uavs[i].tlm);
             m_uavs[i].srv_mgr = std::make_unique<ServerManager>(server_url);
             m_uavs[i].tlm_mgr = std::make_unique<TelemetryManager>(i, m_uavs[i].tlm, m_uavs[i].srv_mgr);
+
+            m_uavs[i].tlm_mgr->start();
+
+            m_uavs[i].cmd->setNavigationArea(instance->m_nav_area);
+            m_uavs[i].cmd->startMission();
         });
     }
 }

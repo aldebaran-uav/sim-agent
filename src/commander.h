@@ -3,6 +3,8 @@
 #ifndef COMMANDER_H
 #define COMMANDER_H
 
+#include "navigation_area.h"
+
 #include <mavsdk/plugins/telemetry/telemetry.h>
 #include <mavsdk/plugins/action/action.h>
 
@@ -18,12 +20,10 @@ public:
     ~Commander();
 
     void takeoff();
-    void land(); // Leaving this for consistency, even if unimplemented
     void startMission();
     void stopMission();
 
-    // Set the navigation area boundaries
-    void setNavigationArea(double north, double east, double south, double west, double max_altitude, double min_altitude);
+    void setNavigationArea(const navigation_area &nav_area);
 
 private:
     std::shared_ptr<mavsdk::Action> m_action;

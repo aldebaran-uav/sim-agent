@@ -29,4 +29,5 @@ rebuild: clean build
 
 run:
 	@echo "Running sim-agent..."
-	@./$(BUILD_DIR)/sim-agent 5 udpin://127.0.0.1:14540
+	@./start_sim.sh
+	@./$(BUILD_DIR)/sim-agent

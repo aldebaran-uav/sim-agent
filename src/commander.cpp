@@ -1,4 +1,5 @@
 #include "commander.h"
+
 #include <random>
 #include <iostream>
 #include <cmath>
@@ -8,27 +9,30 @@ Commander::Commander(std::shared_ptr<mavsdk::Action> action,
                      std::shared_ptr<mavsdk::Telemetry> telemetry)
     : m_action(action), m_telemetry(telemetry) {}
 
-Commander::~Commander() {
+Commander::~Commander() 
+{
     stopMission();
     if (m_missionThread.joinable()) {
         m_missionThread.join();
     }
 }
 
-void Commander::setNavigationArea(double north, double east, double south, double west, double max_altitude, double min_altitude) {
-    m_max_altitude = max_altitude;
-    m_min_altitude = min_altitude;
+void Commander::setNavigationArea(const navigation_area &nav_area) 
+{
+    m_max_altitude = nav_area.max_altitude;
+    m_min_altitude = nav_area.min_altitude;
     
-    m_north = north;
-    m_east = east;
-    m_south = south;
-    m_west = west;
+    m_north = nav_area.north;
+    m_east = nav_area.east;
+    m_south = nav_area.south;
+    m_west = nav_area.west;
 
     m_lat_dist = std::uniform_real_distribution<>(m_south, m_north);
     m_lon_dist = std::uniform_real_distribution<>(m_west, m_east);
 }
 
-void Commander::takeoff() {
+void Commander::takeoff()
+{
     if (m_action) {
         std::cout << "Arming..." << std::endl;
         auto arm_result = m_action->arm();
@@ -57,20 +61,24 @@ void Commander::takeoff() {
     }
 }
 
-void Commander::land() {
-    std::cout << "Landing is not implemented." << std::endl;
-}
-
-void Commander::startMission() {
-    if (!m_missionRunning) {
-        m_missionRunning = true;
-        m_missionThread = std::thread(&Commander::runMission, this);
-    } else {
+void Commander::startMission()
+{
+    if (m_missionRunning) {
         std::cout << "Mission already running." << std::endl;
+        return;
     }
+
+    m_missionRunning = true;
+
+    while (m_telemetry->flight_mode() != mavsdk::Telemetry::FlightMode::Hold) {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+    
+    m_missionThread = std::thread(&Commander::runMission, this);
 }
 
-void Commander::stopMission() {
+void Commander::stopMission()
+{
     if (m_missionRunning) {
         m_missionRunning = false;
         if (m_missionThread.joinable()) {
@@ -81,7 +89,8 @@ void Commander::stopMission() {
     }
 }
 
-void Commander::runMission() {
+void Commander::runMission()
+{
     std::uniform_real_distribution<> alt_dist(m_min_altitude, m_max_altitude);
 
     while (m_missionRunning) {
@@ -111,7 +120,8 @@ void Commander::runMission() {
     std::cout << "Mission stopped." << std::endl;
 }
 
-void Commander::navigateToWaypoint(double latitude, double longitude, float altitude) {
+void Commander::navigateToWaypoint(double latitude, double longitude, float altitude)
+{
     if (m_action) {
         auto goto_result = m_action->goto_location(latitude, longitude, altitude, 0.0f);
         if (goto_result != mavsdk::Action::Result::Success) {

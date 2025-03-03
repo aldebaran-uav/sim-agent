@@ -1,9 +1,15 @@
 #include "server_manager.h"
+#include <iostream>
 
 ServerManager::ServerManager(std::string server_url) 
     : m_server_url(server_url) {}
 
-ServerManager::~ServerManager() {}
+ServerManager::~ServerManager() {
+    if (m_curl) {
+        curl_easy_cleanup(m_curl);
+    }
+    curl_global_cleanup();
+}
 
 void ServerManager::init()
 {
@@ -13,28 +19,28 @@ void ServerManager::init()
 
 void ServerManager::post(const nlohmann::json& data, const std::string& endpoint)
 {
-    if (m_curl) {
-        curl_easy_setopt(m_curl, CURLOPT_URL, (m_server_url + endpoint).c_str());
-        curl_easy_setopt(m_curl, CURLOPT_POST, 1L);
-        curl_easy_setopt(m_curl, CURLOPT_POSTFIELDS, data.dump().c_str());
-        curl_easy_setopt(m_curl, CURLOPT_POSTFIELDSIZE, data.dump().size());
-
-        CURLcode res = curl_easy_perform(m_curl);
-        if (res != CURLE_OK) {
-            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-        }
+    if (!m_curl) {
+        return;
     }
+
+    std::string url = m_server_url + endpoint;
+    curl_easy_setopt(m_curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(m_curl, CURLOPT_POST, 1L);
+    curl_easy_setopt(m_curl, CURLOPT_POSTFIELDS, data.dump().c_str());
+    curl_easy_setopt(m_curl, CURLOPT_POSTFIELDSIZE, data.dump().size());
+
+    curl_easy_perform(m_curl);
 }
 
 void ServerManager::get(const std::string& endpoint)
 {
-    if (m_curl) {
-        curl_easy_setopt(m_curl, CURLOPT_URL, (m_server_url + endpoint).c_str());
-        curl_easy_setopt(m_curl, CURLOPT_HTTPGET, 1L);
-
-        CURLcode res = curl_easy_perform(m_curl);
-        if (res != CURLE_OK) {
-            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-        }
+    if (!m_curl) {
+        return;
     }
+
+    std::string url = m_server_url + endpoint;
+    curl_easy_setopt(m_curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(m_curl, CURLOPT_HTTPGET, 1L);
+
+    curl_easy_perform(m_curl);
 }

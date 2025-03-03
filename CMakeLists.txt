@@ -9,17 +9,25 @@ find_package(MAVSDK REQUIRED)
 find_package(CURL REQUIRED)
 find_package(nlohmann_json REQUIRED)
 
-# List all source files explicitly
-add_executable(${PROJECT_NAME}
-    src/main.cpp
-    src/commander.cpp
-    src/agent.cpp
+set(HEADERS
     src/agent.h
     src/commander.h
-    src/telemetry_manager.cpp
     src/telemetry_manager.h
-    src/server_manager.cpp
     src/server_manager.h
+)
+
+set(SOURCES
+    src/main.cpp
+    src/agent.cpp
+    src/commander.cpp
+    src/telemetry_manager.cpp
+    src/server_manager.cpp
+)
+
+# List all source files explicitly
+add_executable(${PROJECT_NAME}
+    ${HEADERS}
+    ${SOURCES}
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE

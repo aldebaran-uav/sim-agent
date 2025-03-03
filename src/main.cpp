@@ -1,79 +1,49 @@
-#include <iostream>
 #include "agent.h"
-#include "commander.h"
+
+#include <iostream>
+#include <fstream>
+#include <nlohmann/json.hpp>
 #include <thread>
 
+using json = nlohmann::json;
+
+json readConfig(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        return json();
+    }
+    json config;
+    file >> config;
+    return config;
+}
+
 int main(int argc, char* argv[]) {
-    if (argc != 4) {
-        std::cout << "Usage: " << argv[0] << " <number_of_drones> <udp_connection_url> <competion_server_url>" << std::endl;
-        std::cout << "Example: " << argv[0] << " 4 udpin://:14540 http://127.0.0.25:5000" << std::endl;
+    json config;
+    config = readConfig("config.json");
+    if (config.empty()) {
         return 1;
     }
 
-    int num_drones;
-    try {
-        num_drones = std::stoi(argv[1]);
-    } catch (const std::invalid_argument& e) {
-        std::cerr << "Invalid number of drones: " << argv[1] << std::endl;
-        return 1;
-    } catch (const std::out_of_range& e) {
-        std::cerr << "Number of drones out of range: " << argv[1] << std::endl;
-        return 1;
-    }
-    std::string connection_url = argv[2];
-    std::string server_url = argv[3];
+    int num_drones = config["uav_count"];
+    std::string connection_url = config["mavlink_ip"];
+    int start_port = config["uav_start_port"];
+    std::string server_url = std::string(config["server_ip"]) + ":" 
+                           + std::to_string(static_cast<int>(config["server_port"]));
+    std::string full_connection_url = connection_url + ":" 
+                                    + std::to_string(static_cast<int>(start_port));
+    navigation_area nav_area;
+
+    nav_area.north = 47.398321;
+    nav_area.east = 8.556129;
+    nav_area.south = 47.397400;
+    nav_area.west = 8.546417;
+    nav_area.max_altitude = 25.0;
+    nav_area.min_altitude = 20.0;
 
     Agent* agent = Agent::getInstance();
-    agent->init(num_drones, connection_url, server_url);
+    agent->init(num_drones, full_connection_url, server_url, nav_area);
 
-    // waiting time to ensure all drones are connected
-    while (agent->uavs().size() < num_drones) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
-
-    double north = 47.398321;
-    double east = 8.556129;
-    double south = 47.397400;
-    double west = 8.546417;
-    double maks_altitude = 25.0f;
-    double min_altitude = 20.0f;
-
-    std::vector<std::thread> threads;
-
-    for (auto& uav : agent->uavs()) {
-        threads.emplace_back([&uav, north, east, south, west, maks_altitude, min_altitude]() {
-            while (uav.cmd == nullptr) {
-                std::this_thread::sleep_for(std::chrono::seconds(1));
-            }
-
-            uav.cmd->setNavigationArea(north, east, south, west, maks_altitude, min_altitude);
-            uav.cmd->takeoff();
-
-            // Wait for the drone to be in Hold mode after takeoff
-            auto start_time = std::chrono::steady_clock::now();
-            while (uav.tlm->flight_mode() != mavsdk::Telemetry::FlightMode::Hold) {
-                std::cout << "Waiting for drone to enter Hold mode..." << std::endl;
-                std::this_thread::sleep_for(std::chrono::seconds(1));
-                auto current_time = std::chrono::steady_clock::now();
-                auto duration = std::chrono::duration_cast<std::chrono::seconds>(current_time - start_time).count();
-                if (duration > 30) { // Timeout after 30 seconds
-                    std::cerr << "Timeout waiting for Hold mode." << std::endl;
-                    break;
-                }
-            }
-
-            uav.cmd->startMission();
-        });
-    }
-
-    std::cout << "Press Enter to stop all missions..." << std::endl;
     std::cin.get();
-
-    for (auto& thread : threads) {
-        if (thread.joinable()) {
-            thread.join();
-        }
-    }
 
     for (auto& uav : agent->uavs()) {
         if (uav.cmd) {

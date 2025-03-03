@@ -1,0 +1,15 @@
+{
+    "uav_count":  5,
+    "mavlink_ip": "udpin://127.0.0.1",
+    "uav_start_port": 14540,
+    "server_ip": "http://127.0.0.1",
+    "server_port": 3000,
+    "navigation_area": {
+        "north": 47.398321,
+        "east": 8.556129,
+        "south": 47.397400,
+        "west": 8.546417,
+        "max_altitude": 25.0,
+        "min_altitude": 20.0
+    }
+}
