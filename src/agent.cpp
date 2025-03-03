@@ -18,14 +18,17 @@ Agent::~Agent()
     }
 }
 
-Agent* Agent::getInstance() {
+Agent* Agent::getInstance()
+{
     if (instance == nullptr) {
         instance = new Agent();
     }
     return instance;
 }
 
-void Agent::init(int uav_count, const std::string& start_url) {
+void Agent::init(int uav_count, const std::string& start_url, 
+                 const std::string& server_url) 
+{
     if (instance == nullptr) {
         instance = new Agent();
     }
@@ -35,7 +38,7 @@ void Agent::init(int uav_count, const std::string& start_url) {
 
     m_threads.clear();
     for (int i = 0; i < uav_count; ++i) {
-        m_threads.emplace_back([this, i, start_url]() {
+        m_threads.emplace_back([this, i, start_url, server_url]() {
             m_uavs[i].mav = std::make_shared<Mavsdk>(Mavsdk::Configuration(ComponentType::GroundStation));
 
             std::string connection_str = start_url;
@@ -70,11 +73,14 @@ void Agent::init(int uav_count, const std::string& start_url) {
                 std::cerr << "No system found for UAV " << i << std::endl;
                 return;
             }
-
+            
+            m_uavs[i].team_number = i; 
             m_uavs[i].sys = system;
             m_uavs[i].tlm = std::make_shared<Telemetry>(m_uavs[i].sys);
             m_uavs[i].act = std::make_shared<Action>(m_uavs[i].sys);
-            m_uavs[i].cmd = std::make_unique<Commander>(m_uavs[i].act, m_uavs[i].tlm); 
+            m_uavs[i].cmd = std::make_unique<Commander>(m_uavs[i].act, m_uavs[i].tlm);
+            m_uavs[i].srv_mgr = std::make_unique<ServerManager>(server_url);
+            m_uavs[i].tlm_mgr = std::make_unique<TelemetryManager>(i, m_uavs[i].tlm, m_uavs[i].srv_mgr);
         });
     }
 }
