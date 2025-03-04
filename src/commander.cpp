@@ -70,6 +70,8 @@ void Commander::startMission()
 
     m_missionRunning = true;
 
+    this->takeoff();
+
     while (m_telemetry->flight_mode() != mavsdk::Telemetry::FlightMode::Hold) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
