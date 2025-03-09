@@ -24,10 +24,15 @@ void ServerManager::post(const nlohmann::json& data, const std::string& endpoint
     }
 
     std::string url = m_server_url + endpoint;
+    std::string json_payload = data.dump();
+    struct curl_slist* headers = NULL;
+    headers = curl_slist_append(headers, "Content-Type: application/json"); // Set JSON content type
+    headers = curl_slist_append(headers, "Accept: application/json"); // Accept JSON response
+    curl_easy_setopt(m_curl, CURLOPT_HTTPHEADER, headers); // Apply headers
     curl_easy_setopt(m_curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(m_curl, CURLOPT_POST, 1L);
-    curl_easy_setopt(m_curl, CURLOPT_POSTFIELDS, data.dump().c_str());
-    curl_easy_setopt(m_curl, CURLOPT_POSTFIELDSIZE, data.dump().size());
+    curl_easy_setopt(m_curl, CURLOPT_POSTFIELDS, json_payload.c_str());
+    curl_easy_setopt(m_curl, CURLOPT_POSTFIELDSIZE, json_payload.size());
 
     curl_easy_perform(m_curl);
 }
