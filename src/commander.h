@@ -7,6 +7,7 @@
 
 #include <mavsdk/plugins/telemetry/telemetry.h>
 #include <mavsdk/plugins/action/action.h>
+#include <mavsdk/plugins/mission/mission.h>
 
 #include <atomic>
 #include <thread>
@@ -15,7 +16,8 @@
 
 class Commander {
 public:
-    Commander(std::shared_ptr<mavsdk::Action> action,
+    Commander(std::shared_ptr<mavsdk::Mission> mission,
+              std::shared_ptr<mavsdk::Action> action,
               std::shared_ptr<mavsdk::Telemetry> telemetry);
     ~Commander();
 
@@ -23,11 +25,18 @@ public:
     void startMission();
     void stopMission();
 
+    void createMission();
+    void uploadMission();
+
     void setNavigationArea(const navigation_area &nav_area);
 
 private:
+    std::shared_ptr<mavsdk::Mission> m_mission;
     std::shared_ptr<mavsdk::Action> m_action;
     std::shared_ptr<mavsdk::Telemetry> m_telemetry;
+
+    mavsdk::Mission::MissionPlan mission_plan;
+
     std::atomic<bool> m_missionRunning{false};
     std::thread m_missionThread;
 

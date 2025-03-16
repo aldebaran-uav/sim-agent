@@ -11,6 +11,7 @@
 #include <mavsdk/mavsdk.h>
 #include <mavsdk/plugins/telemetry/telemetry.h>
 #include <mavsdk/plugins/action/action.h>
+#include <mavsdk/plugins/mission/mission.h>
 
 #include <iostream>
 #include <memory>
@@ -25,6 +26,7 @@ typedef struct {
     std::shared_ptr<System> sys;
     std::shared_ptr<Telemetry> tlm;
     std::shared_ptr<Action> act;
+    std::shared_ptr<Mission> mission;
     std::unique_ptr<Commander> cmd;
     std::unique_ptr<TelemetryManager> tlm_mgr;
     std::shared_ptr<ServerManager> srv_mgr;

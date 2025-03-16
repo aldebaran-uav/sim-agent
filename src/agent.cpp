@@ -79,9 +79,11 @@ void Agent::init(int uav_count, const std::string& start_url,
             m_uavs[i].sys = system;
             m_uavs[i].tlm = std::make_shared<Telemetry>(m_uavs[i].sys);
             m_uavs[i].act = std::make_shared<Action>(m_uavs[i].sys);
-            m_uavs[i].cmd = std::make_unique<Commander>(m_uavs[i].act, m_uavs[i].tlm);
+            m_uavs[i].mission = std::make_shared<Mission>(m_uavs[i].sys);
+            m_uavs[i].cmd = std::make_unique<Commander>(m_uavs[i].mission, m_uavs[i].act, m_uavs[i].tlm);
             m_uavs[i].srv_mgr = std::make_unique<ServerManager>(server_url);
             m_uavs[i].tlm_mgr = std::make_unique<TelemetryManager>(i, m_uavs[i].tlm, m_uavs[i].srv_mgr);
+
 
             m_uavs[i].tlm_mgr->start();
 
