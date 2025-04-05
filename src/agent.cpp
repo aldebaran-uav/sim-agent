@@ -83,8 +83,14 @@ void Agent::init(int uav_count, const std::string& start_url,
             m_uavs[i].cmd = std::make_unique<Commander>(m_uavs[i].mission, m_uavs[i].act, m_uavs[i].tlm);
             m_uavs[i].srv_mgr = std::make_unique<ServerManager>(server_url);
             m_uavs[i].tlm_mgr = std::make_unique<TelemetryManager>(i, m_uavs[i].tlm, m_uavs[i].srv_mgr);
-
-
+            m_uavs[i].param = std::make_shared<Param>(m_uavs[i].sys);
+            
+            Param::Result result;
+            while(result != Param::Result::Success){
+                result = m_uavs[i].param->set_param_int("COM_RC_IN_MODE", 4);
+                std::this_thread::sleep_for(std::chrono::seconds(2));
+            }
+            std::cout << "Set COM_RC_IN_MODE to 4 for UAV " << i << std::endl;
             m_uavs[i].tlm_mgr->start();
 
             m_uavs[i].cmd->setNavigationArea(instance->m_nav_area);

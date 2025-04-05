@@ -79,17 +79,24 @@ void Commander::createMission()
         item.relative_altitude_m = m_min_altitude;
         item.speed_m_s = 5.0f;
         item.is_fly_through = true;
-        item.gimbal_pitch_deg = 0.0f;
-        item.gimbal_yaw_deg = 0.0f;
-        item.camera_action = mavsdk::Mission::MissionItem::CameraAction::None;
-        item.loiter_time_s = NAN;
-        item.camera_photo_interval_s = NAN;
-        item.camera_photo_distance_m = NAN;
         item.acceptance_radius_m = 1.0f;
         item.yaw_deg = 0.0f;
         item.vehicle_action = mavsdk::Mission::MissionItem::VehicleAction::None;
         mission_plan.mission_items.push_back(item);
     }
+
+    mavsdk::Mission::MissionItem landingPoint;
+    landingPoint.latitude_deg = m_lat_dist(m_gen);
+    landingPoint.longitude_deg = m_lon_dist(m_gen);
+    landingPoint.relative_altitude_m = m_min_altitude;
+    landingPoint.speed_m_s = 5.0f;
+    landingPoint.is_fly_through = false;
+    landingPoint.loiter_time_s = NAN;
+    landingPoint.acceptance_radius_m = 1.0f;
+    landingPoint.yaw_deg = 0.0f;
+    landingPoint.vehicle_action = mavsdk::Mission::MissionItem::VehicleAction::Land;
+
+    mission_plan.mission_items.push_back(landingPoint);
 }
 
 void Commander::uploadMission()
@@ -126,13 +133,21 @@ void Commander::startMission() {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    if (m_mission->start_mission() != mavsdk::Mission::Result::Success) {
-        std::cerr << "Failed to start mission." << std::endl;
-        std::cerr << "Current flight mode: " << m_telemetry->flight_mode() << std::endl;
-        std::cerr << "Is armed: " << m_telemetry->armed() << std::endl;
-        std::cerr << "Is in air: " << m_telemetry->in_air() << std::endl;
-        return;
-    }
+    // if (m_mission->start_mission() != mavsdk::Mission::Result::Success) {
+    //     std::cerr << "Failed to start mission." << std::endl;
+    //     std::cerr << "Current flight mode: " << m_telemetry->flight_mode() << std::endl;
+    //     std::cerr << "Is armed: " << m_telemetry->armed() << std::endl;
+    //     std::cerr << "Is in air: " << m_telemetry->in_air() << std::endl;
+    //     return;
+    // }
+
+    m_mission->start_mission_async([this](mavsdk::Mission::Result result) {
+        if(result == mavsdk::Mission::Result::Success) {
+            std::cout << "Görev başlatıldı";
+            return;
+        }
+        std::cout << "Görev başlatılamadı : " << result;
+    });
 }
 
 void Commander::stopMission() {

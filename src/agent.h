@@ -12,6 +12,7 @@
 #include <mavsdk/plugins/telemetry/telemetry.h>
 #include <mavsdk/plugins/action/action.h>
 #include <mavsdk/plugins/mission/mission.h>
+#include <mavsdk/plugins/param/param.h>
 
 #include <iostream>
 #include <memory>
@@ -30,6 +31,7 @@ typedef struct {
     std::unique_ptr<Commander> cmd;
     std::unique_ptr<TelemetryManager> tlm_mgr;
     std::shared_ptr<ServerManager> srv_mgr;
+    std::shared_ptr<Param> param;
 } uav;
 
 class Agent 

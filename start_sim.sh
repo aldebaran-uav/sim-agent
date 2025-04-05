@@ -17,6 +17,7 @@ fi
 
 for (( i=0; i<DRONE_COUNT; i++ ))
 do
-    gnome-terminal -- bash -c "PX4_SYS_AUTOSTART=4003 PX4_SIM_MODEL=gz_rc_cessna PX4_GZ_MODEL_POSE=\"$((i*2))\" $PX4_PATH/build/px4_sitl_default/bin/px4 -i $i; exec bash"
+    POSE="$(($i * 4)) $(($i * 4)) 0 0 0 0"
+    gnome-terminal -- bash -c "PX4_SYS_AUTOSTART=4003 PX4_SIM_MODEL=gz_rc_cessna PX4_GZ_MODEL_POSE=\"$POSE\" $PX4_PATH/build/px4_sitl_default/bin/px4 -i $i; exec bash"
     sleep 4
 done
