@@ -48,7 +48,7 @@ void Agent::init(int uav_count, const std::string& start_url,
             }
 
             std::ostringstream url;
-            url << connection_str.substr(0, connection_str.find_last_of(':') + 1) << 14540 + i;
+            url << connection_str.substr(0, connection_str.find_last_of(':') + 1) << 14541 + i;
             std::cout << "Connecting to " << url.str() << std::endl;
 
             ConnectionResult connection_result = m_uavs[i].mav->add_any_connection(url.str());

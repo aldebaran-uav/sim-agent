@@ -127,6 +127,11 @@ void Commander::startMission() {
 
     this->createMission();
     this->uploadMission();
+    // Check until vehicle is ready to arm
+    while (m_telemetry->health_all_ok() != true) {
+        std::cout << "Vehicle is getting ready to arm\n";
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
     this->takeoff();
     
     while(!m_telemetry->in_air() && m_telemetry->flight_mode() != mavsdk::Telemetry::FlightMode::Hold) {
