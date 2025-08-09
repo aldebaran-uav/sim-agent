@@ -33,10 +33,10 @@ int main(int argc, char* argv[]) {
                                     + std::to_string(static_cast<int>(start_port));
     navigation_area nav_area;
 
-    nav_area.north = 40.206761;
-    nav_area.east = 25.882657;
-    nav_area.south = 40.202909;
-    nav_area.west = 25.885234;
+    nav_area.north = 40.203078;
+    nav_area.east = 25.887471;
+    nav_area.south = 40.205592;
+    nav_area.west = 25.880260;
     nav_area.max_altitude = 25.0;
     nav_area.min_altitude = 20.0;
 
