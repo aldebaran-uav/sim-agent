@@ -1,5 +1,5 @@
 {
-    "uav_count":  7,
+    "uav_count":  9,
     "mavlink_ip": "udpin://127.0.0.1",
     "uav_start_port": 14541,
     "server_ip": "http://127.0.0.1",

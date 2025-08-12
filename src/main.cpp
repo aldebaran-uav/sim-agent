@@ -33,12 +33,12 @@ int main(int argc, char* argv[]) {
                                     + std::to_string(static_cast<int>(start_port));
     navigation_area nav_area;
 
-    nav_area.north = 40.203078;
-    nav_area.east = 25.887471;
-    nav_area.south = 40.205592;
-    nav_area.west = 25.880260;
-    nav_area.max_altitude = 25.0;
-    nav_area.min_altitude = 20.0;
+    nav_area.north = 40.205512;
+    nav_area.east = 25.876472;
+    nav_area.south = 40.201874;
+    nav_area.west = 25.887929;
+    nav_area.max_altitude = 50.0;
+    nav_area.min_altitude = 40.0;
 
     Agent* agent = Agent::getInstance();
     agent->init(num_drones, full_connection_url, server_url, nav_area);
