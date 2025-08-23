@@ -39,6 +39,7 @@ class Agent
 public:
     static Agent* getInstance();
 
+    void configure(int uav_count, const std::string& start_url, const std::string& server_url, navigation_area& nav_area);
     void init(int uav_count, const std::string& start_url, 
               const std::string& server_url, navigation_area& nav_area);
 

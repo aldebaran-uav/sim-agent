@@ -48,7 +48,7 @@ void Agent::init(int uav_count, const std::string& start_url,
             }
 
             std::ostringstream url;
-            url << connection_str.substr(0, connection_str.find_last_of(':') + 1) << 14541 + i;
+            url << connection_str.substr(0, connection_str.find_last_of(':') + 1) << 14542 + i;
             std::cout << "Connecting to " << url.str() << std::endl;
 
             ConnectionResult connection_result = m_uavs[i].mav->add_any_connection(url.str());
@@ -85,16 +85,40 @@ void Agent::init(int uav_count, const std::string& start_url,
             m_uavs[i].tlm_mgr = std::make_unique<TelemetryManager>(i, m_uavs[i].tlm, m_uavs[i].srv_mgr);
             m_uavs[i].param = std::make_shared<Param>(m_uavs[i].sys);
             
-            Param::Result result;
-            while(result != Param::Result::Success){
-                result = m_uavs[i].param->set_param_int("COM_RC_IN_MODE", 4);
+            Param::Result param_result;
+            while(param_result != Param::Result::Success){
+                param_result = m_uavs[i].param->set_param_int("COM_RC_IN_MODE", 4);
                 std::this_thread::sleep_for(std::chrono::seconds(2));
             }
-            std::cout << "Set COM_RC_IN_MODE to 4 for UAV " << i << std::endl;
-            m_uavs[i].tlm_mgr->start();
 
+            std::cout << "Set COM_RC_IN_MODE to 4 for UAV " << i << std::endl;
+
+            // param_result = Param::Result::Unknown;
+
+            // while(param_result != Param::Result::Success){
+            //     param_result = m_uavs[i].param->set_param_int("UXRCE_DDS_KEY", 0);
+            //     std::this_thread::sleep_for(std::chrono::seconds(2));
+            // }
+
+            // std::cout << "Set UXRCE_DDS_KEY to 0 for UAV " << i << std::endl;
+
+            // Action::Result action_result = Action::Result::Unknown;
+
+            // // Reboot for parameter updates
+            // while(action_result != Action::Result::Success){
+            //     action_result = m_uavs[i].act->reboot();
+            //     std::this_thread::sleep_for(std::chrono::seconds(2));
+            // }
+
+            // // Wait for reboot complete
+            // while(m_uavs[i].tlm->health_all_ok() == false) {
+            //     std::this_thread::sleep_for(std::chrono::seconds(2));
+            //     std::cout << "Waiting for UAV " << i << " to reboot..." << std::endl;
+            // }
+
+            m_uavs[i].tlm_mgr->start();
             m_uavs[i].cmd->setNavigationArea(instance->m_nav_area);
-            m_uavs[i].cmd->startMission();
+            m_uavs[i].cmd->startMission(); 
         });
     }
 }

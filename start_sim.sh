@@ -9,4 +9,5 @@ if [ -z "$PX4_PATH" ]; then
     exit 1
 fi
 
-gnome-terminal -- $PX4_PATH/Tools/simulation/gazebo-classic/sitl_multiple_run.sh -n $(jq -r '.uav_count' "config.json")
+gnome-terminal -- $PX4_PATH/Tools/simulation/gazebo-classic/sitl_multiple_run.sh -s plane_cam:1,plane:$(jq -r '.uav_count' "config.json") -w mcmillan_airfield
+# gnome-terminal -- $PX4_PATH/Tools/simulation/gazebo-classic/sitl_multiple_run.sh -m plane -n $(jq -r '.uav_count' "config.json") -w mcmillan_airfield
